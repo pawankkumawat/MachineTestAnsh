@@ -1,14 +1,21 @@
-import { DbUser, USERS, Members } from './database-data';
+import { USERS, Members, } from './database-data';
 import * as _ from 'lodash';
+import { DbUser } from 'models';
 class InMemoryDataBase {
     counter = 0;
-    createUser(email, password,roles=[]): DbUser {
+    createUser(email, password, roles = [], permissions = [
+        'CheckPoint_View',
+        'CheckPoint_Create',
+        'CheckPoint_Update',
+        'CheckPoint_Delete'
+    ]): DbUser {
         const id = ++this.counter;
         const user: DbUser = {
             id,
             email,
             password,
-            roles
+            roles,
+            permissions
         }
         USERS[id] = user;
         // console.log('User created', user)

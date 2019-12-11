@@ -4,7 +4,7 @@
 import * as jwt from 'jsonwebtoken';
 import { Response, Request } from 'express';
 import * as fs from "fs";
-import { DbUser } from './database-data';
+import { DbUser } from 'models';
 const RSA_PRIVATE_KEY = fs.readFileSync('./private.pem');
 
 const RSA_PUBLIC_KEY = fs.readFileSync('./public.pem');

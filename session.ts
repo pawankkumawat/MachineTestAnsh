@@ -1,7 +1,6 @@
 import * as  crypto from 'crypto';
 import * as util from 'util';
 import { Moment } from 'moment'
-import { DbUser } from './database-data';
 import moment = require('moment');
 // crypto.randomBytes(256, (err, buf) => {
 //     if (err) throw err;

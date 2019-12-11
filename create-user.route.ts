@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { db } from './database';
-import { USERS, DbUser } from './database-data';
+import { USERS } from './database-data';
 import * as  argon2 from 'argon2';
 import { passwordpolicy } from './password-policy';
 import { randomByte } from './session';
@@ -9,9 +9,11 @@ import { createToken } from './session-jwt';
 import * as _ from 'lodash';
 import { Messages } from './constants';
 import { ServerResponse } from './functionconstrotors';
-import { User } from './models';
-  
-
+import { User, DbUser } from './models';
+const fs = require('fs');
+const multer = require('multer');
+const upload = multer({ dest: __dirname + '/public/uploads/' });
+var type = upload.single('upl');
 export function createUser(req: Request, res: Response) {
     // const credentials = req.body;
     // let errors = passwordpolicy(credentials.password);
@@ -104,6 +106,7 @@ export function login(req: Request, res: Response) {
     const credentials = req.body;
     const user: DbUser = db.getUserByEmail(credentials.email);
     if (user) {
+        console.log('user after login ', user)
         checkCredential(credentials.password, user, res)
     } else {
         res.status(403).send(Messages.InvalidUserNamePassword);
@@ -111,28 +114,32 @@ export function login(req: Request, res: Response) {
 
 }
 
+export function saveImage(req: Request, res: Response) {
+    console.log('saveImage',req.body);
+    console.log('blob',req.body.blob);
+    var buf = new Buffer(req.body.blob, 'base64'); // decode
+    fs.writeFile("temp/test.png", buf, function(err) {
+      if(err) {
+        console.log("err", err);
+      } else {
+        return res.status(200).json({'status': 'success'});
+      }
+    }); 
+
+}
+
+
 async function checkCredential(password, user: DbUser, res) {
-    // const isVerified = await argon2.verify(user.password, password);
-    // if (isVerified) {
-    //     const sessionId = await randomByte(32).then(bytes => bytes.toString('hex'));
-    //     sessionStore.createSession(sessionId, user);
-    //     res.cookie('SESSIONID', sessionId, { httpOnly: true, secure: true });
-    //     res.status(200).json({ id: user.id, email: user.email })
-    // } else {
-    //     res.sendStatus(403);
-
-    // }
-
     const isVerified = await argon2.verify(user.password, password);
     if (isVerified) {
         let authtoken = createToken(user);
-        let userClient: User = { id: user.id, email: user.email, roles: user.roles }
+        let userClient: User = { id: user.id, email: user.email, roles: user.roles, permissions: user.permissions }
         let serverResponse = new ServerResponse<{ userClient: User, authtoken: any }>({
-               ResultSet: { userClient, authtoken },
-               ServerMsg:"Operation Successful",
-               ServerMsgLangCode:'EN',
-               ServerMsgType:'SUCCESS'
-            });
+            ResultSet: { userClient, authtoken },
+            ServerMsg: "Operation Successful",
+            ServerMsgLangCode: 'EN',
+            ServerMsgType: 'SUCCESS'
+        });
         res.status(200).json(serverResponse);
     } else {
         res.status(403).send(Messages.InvalidUserNamePassword);
