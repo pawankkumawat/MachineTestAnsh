@@ -8,7 +8,7 @@ hooks:
     #- location: Scripts/UnzipResourceBundle.sh
     #- location: Scripts/UnzipDataBundle.sh
   AfterInstall:
-    - npm install
+    #- npm install
     #- location: Scripts/RunResourceTests.sh
     #  timeout: 180
   ApplicationStart:
