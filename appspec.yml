@@ -5,10 +5,10 @@ files:
     destination: C:\Deployment
 hooks:
   BeforeInstall:
-    - location: C:\deployment-scripts\pre-install-script.ps1
+    - location: pre-install-script.ps1
       timeout: 180
   AfterInstall:
-    - location: C:\deployment-scripts\post-install-script.ps1
+    - location: post-install-script.ps1
       timeout: 180
   ApplicationStart:
     #- location: Scripts/RunFunctionalTests.sh
