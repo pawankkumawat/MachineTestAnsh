@@ -1,8 +1,8 @@
 version: 0.0
 os: windows
 files:
-  #- source: source
-  #  destination: C:\Deployment
+  - source: deployment-archive
+    destination: C:\Deployment
 hooks:
   BeforeInstall:
     #- location: Scripts/UnzipResourceBundle.sh
