@@ -5,11 +5,11 @@ files:
     destination: C:\Deployment
 hooks:
   BeforeInstall:
-    #- location: Scripts/UnzipResourceBundle.sh
-    #- location: Scripts/UnzipDataBundle.sh
+    - location: C:\deployment-scripts\pre-install-script.ps1
+      timeout: 180
   AfterInstall:
-    #- location: Scripts/RunResourceTests.sh
-    #  timeout: 180
+    - location: C:\deployment-scripts\post-install-script.ps1
+      timeout: 180
   ApplicationStart:
     #- location: Scripts/RunFunctionalTests.sh
     #  timeout: 3600
