@@ -1,8 +1,6 @@
 version: 0.0
 os: windows
 files:
-  - source: Config/config.txt
-    destination: C:\Deployment
   - source: source
     destination: C:\Deployment
 hooks:
