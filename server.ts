@@ -23,7 +23,9 @@ import {
 } from "./authetication.middleware";
 import * as _ from "lodash";
 import { isValidAuthToken } from "./session-jwt";
-import mime = require('mime');
+import mime = require("mime");
+import { retrieveImage } from './images.route';
+const AWS = require("aws-sdk");
 const app: Application = express();
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -79,22 +81,78 @@ app.route("/api/login").post(login);
 app.route("/api/isValidAuthToken").get(isValidAuthToken);
 
 const multer = require("multer");
+const fileNameCreator = {
+  count: 0
+};
+
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null,  __dirname + "/public/uploads/")
-    },
-    filename: function (req, file, cb) {
-      cb(null, file.fieldname + '-' + Date.now()+ '.' + mime['extension'](file.mimetype));
-    }
-  })
-
-
+  destination: function(req, file, cb) {
+    cb(null, __dirname + "/public/uploads/");
+  },
+  filename: function(req, file, cb) {
+    fileNameCreator.count = fileNameCreator.count + 1;
+    cb(
+      null,
+      // file.fieldname + "-" +
+      fileNameCreator.count + "." + mime["extension"](file.mimetype)
+    );
+  }
+});
 
 // const upload = multer({ dest: __dirname + "/public/uploads/" });
 const upload = multer({ storage: storage });
 
+const s3 = new AWS.S3({
+  accessKeyId: "AKIAWEVM32S3TOW2SFU3",
+  secretAccessKey: "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"
+});
+
+const uploadFile = () => {
+  const fileName =
+    __dirname + "/public/uploads/" + fileNameCreator.count + ".png";
+  fs.readFile(fileName, (err, data) => {
+    if (err) throw err;
+    const params = {
+      Bucket: "aa-server-v1", // pass your bucket name
+      Key: "1/" + fileNameCreator.count + ".png", // file will be saved as testBucket/contacts.csv
+      Body: JSON.stringify(data, null, 2)
+    };
+    s3.upload(params, function(s3Err, data) {
+      if (s3Err) throw s3Err;
+      console.log(`File uploaded successfully at ${data.Location}`);
+    });
+  });
+};
+
 app.post("/api/image", upload.single("file"), function(req, res, next) {
   console.log("avatar", req["file"]); //is the `avatar` file
   // req.body will hold the text fields, if there were any
-  return res.status(200).json({'status': 'success'});
+  // uploadFile();
+  newUploadtoS3();
+  return res.status(200).json({ status: "success" });
 });
+
+function newUploadtoS3() {
+  s3.putObject({
+    Bucket: "aa-server-v1",
+    Body: fs.readFileSync(
+      __dirname + "/public/uploads/" + fileNameCreator.count + ".png"
+    ),
+    Key:"1/"+ fileNameCreator.count + ".png"
+  })
+    .promise()
+    .then(response => {
+      console.log(`done! - `, response);
+      console.log(
+        `The URL is ${s3.getSignedUrl("getObject", {
+          Bucket: "aa-server-v1",
+          Key: "1/"+ fileNameCreator.count + ".png"
+        })}`
+      );
+    })
+    .catch(err => {
+      console.log("failed:", err);
+    });
+}
+
+app.route("/api/retrieveimg").get(retrieveImage);

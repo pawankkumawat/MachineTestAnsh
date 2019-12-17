@@ -9,7 +9,7 @@ hooks:
       timeout: 180
   AfterInstall:
     - location: post-install-script.ps1
-      timeout: 180
+      timeout: 360
   ApplicationStart:
     #- location: Scripts/RunFunctionalTests.sh
     #  timeout: 3600
