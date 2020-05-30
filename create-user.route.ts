@@ -1,7 +1,7 @@
 import { Response, Request } from 'express';
 import { db } from './database';
 import { USERS } from './database-data';
-import * as  argon2 from 'argon2';
+import * as argon2 from 'argon2';
 import { passwordpolicy } from './password-policy';
 import { randomByte } from './session';
 import { sessionStore } from './session-store';
@@ -15,51 +15,44 @@ const multer = require('multer');
 const upload = multer({ dest: __dirname + '/public/uploads/' });
 var type = upload.single('upl');
 export function createUser(req: Request, res: Response) {
-    // const credentials = req.body;
-    // let errors = passwordpolicy(credentials.password);
-    // if (errors.length > 0) {
-    //     res.status(500).json(errors)
-    // } else {
-    //     createUsreHash(res, credentials); 
-    // }
+  // const credentials = req.body;
+  // let errors = passwordpolicy(credentials.password);
+  // if (errors.length > 0) {
+  //     res.status(500).json(errors)
+  // } else {
+  //     createUsreHash(res, credentials);
+  // }
 
-
-    const credentials = req.body;
-    let errors = passwordpolicy(credentials.password);
-    if (errors.length > 0) {
-        res.status(500).json(errors)
-    } else {
-        createUsreHashAndSessionToken(res, credentials);
-    }
-
-
+  const credentials = req.body;
+  let errors = passwordpolicy(credentials.password);
+  if (errors.length > 0) {
+    res.status(500).json(errors);
+  } else {
+    createUsreHashAndSessionToken(res, credentials);
+  }
 }
-
 
 export async function CreateDbUsers() {
+  let hash = await argon2.hash('password');
+  let user: DbUser = db.createUser('pawank.kumawat@gmail.com', hash);
 
-    let hash = await argon2.hash('password');
-    let user: DbUser = db.createUser('pawank.kumawat@gmail.com', hash);
-
-    // setRole(user);
-    hash = await argon2.hash('password');
-    user = db.createUser('mom@gmail.com', hash);
-    // setRole(user);
-    hash = await argon2.hash('password');
-    user = db.createUser('bhai@gmail.com', hash);
-    // setRole(user);
-    hash = await argon2.hash('password');
-    user = db.createUser('vasu@gmail.com', hash);
-    // setRole(user);
-    // console.log(USERS);
+  // setRole(user);
+  hash = await argon2.hash('password');
+  user = db.createUser('mom@gmail.com', hash);
+  // setRole(user);
+  hash = await argon2.hash('password');
+  user = db.createUser('bhai@gmail.com', hash);
+  // setRole(user);
+  hash = await argon2.hash('password');
+  user = db.createUser('vasu@gmail.com', hash);
+  // setRole(user);
+  // console.log(USERS);
 }
-
 
 export async function waitTIllAllUserCreation() {
-    await CreateDbUsers();
-    AddRolesToUser();
+  await CreateDbUsers();
+  AddRolesToUser();
 }
-
 
 // function setRole(user: DbUser) {
 //     if (user.email == 'pawank.kumawat@gmail.com') {
@@ -71,80 +64,84 @@ export async function waitTIllAllUserCreation() {
 // }
 
 export function AddRolesToUser() {
-    console.log('USERS');
-    let usersAr = _.values(USERS) as DbUser[];
+  console.log('USERS');
+  let usersAr = _.values(USERS) as DbUser[];
 
-    for (let user of usersAr) {
-        if (user.email == 'pawank.kumawat@gmail.com') {
-            user.roles.push('ADMIN');
-            user.roles.push('MEMBER');
-        } else {
-            user.roles.push('MEMBER')
-        }
+  for (let user of usersAr) {
+    if (user.email == 'pawank.kumawat@gmail.com') {
+        user.roles.push('SUPERADMIN');
+        user.roles.push('ADMIN');
+    } else if (user.email == 'mom@gmail.com') {
+      user.roles.push('ADMIN');
+      user.roles.push('MEMBER');
+    } else {
+      user.roles.push('MEMBER');
     }
+  }
 
-    // for (let user of usersAr) {
-    console.log(USERS);
-    // }
-
+  // for (let user of usersAr) { 
+  console.log(USERS);
+  // }
 }
-
 
 export function logOut(req: Request, res: Response) {
-    // let sessionId = req.cookies['SESSIONID'];
-    // sessionStore.deleteSession(sessionId);
-    // res.clearCookie('SESSIONID');
-    // res.status(200).json({ message: 'Logout Successful' });
-    // let sessionId = req.cookies['SESSIONID'];
-    // console.log('logout', sessionId);
-    // res.clearCookie('SESSIONID');
-    res.status(200).json({ message: 'Logout Successful' });
+  // let sessionId = req.cookies['SESSIONID'];
+  // sessionStore.deleteSession(sessionId);
+  // res.clearCookie('SESSIONID');
+  // res.status(200).json({ message: 'Logout Successful' });
+  // let sessionId = req.cookies['SESSIONID'];
+  // console.log('logout', sessionId);
+  // res.clearCookie('SESSIONID');
+  res.status(200).json({ message: 'Logout Successful' });
 }
 
-
 export function login(req: Request, res: Response) {
-    const credentials = req.body;
-    const user: DbUser = db.getUserByEmail(credentials.email);
-    if (user) {
-        console.log('user after login ', user)
-        checkCredential(credentials.password, user, res)
-    } else {
-        res.status(403).send(Messages.InvalidUserNamePassword);
-    }
-
+  const credentials = req.body;
+  const user: DbUser = db.getUserByEmail(credentials.email);
+  if (user) {
+    console.log('user after login ', user);
+    checkCredential(credentials.password, user, res);
+  } else {
+    res.status(403).send(Messages.InvalidUserNamePassword);
+  }
 }
 
 export function saveImage(req: Request, res: Response) {
-    console.log('saveImage',req.body);
-    console.log('blob',req.body.blob);
-    var buf = new Buffer(req.body.blob, 'base64'); // decode
-    fs.writeFile("temp/test.png", buf, function(err) {
-      if(err) {
-        console.log("err", err);
-      } else {
-        return res.status(200).json({'status': 'success'});
-      }
-    }); 
-
+  console.log('saveImage', req.body);
+  console.log('blob', req.body.blob);
+  var buf = new Buffer(req.body.blob, 'base64'); // decode
+  fs.writeFile('temp/test.png', buf, function (err) {
+    if (err) {
+      console.log('err', err);
+    } else {
+      return res.status(200).json({ status: 'success' });
+    }
+  });
 }
 
-
 async function checkCredential(password, user: DbUser, res) {
-    const isVerified = await argon2.verify(user.password, password);
-    if (isVerified) {
-        let authtoken = createToken(user);
-        let userClient: User = { id: user.id, email: user.email, roles: user.roles, permissions: user.permissions }
-        let serverResponse = new ServerResponse<{ userClient: User, authtoken: any }>({
-            ResultSet: { userClient, authtoken },
-            ServerMsg: "Operation Successful",
-            ServerMsgLangCode: 'EN',
-            ServerMsgType: 'SUCCESS'
-        });
-        res.status(200).json(serverResponse);
-    } else {
-        res.status(403).send(Messages.InvalidUserNamePassword);
-
-    }
+  const isVerified = await argon2.verify(user.password, password);
+  if (isVerified) {
+    let authtoken = createToken(user);
+    let userClient: User = {
+      id: user.id,
+      email: user.email,
+      roles: user.roles,
+      permissions: user.permissions,
+    };
+    let serverResponse = new ServerResponse<{
+      userClient: User;
+      authtoken: any;
+    }>({
+      ResultSet: { userClient, authtoken },
+      ServerMsg: 'Operation Successful',
+      ServerMsgLangCode: 'EN',
+      ServerMsgType: 'SUCCESS',
+    });
+    res.status(200).json(serverResponse);
+  } else {
+    res.status(403).send(Messages.InvalidUserNamePassword);
+  }
 }
 
 // async function createUsreHash(res: Response, credentials: any) {
@@ -155,34 +152,31 @@ async function checkCredential(password, user: DbUser, res) {
 //     sessionStore.createSession(sessionId, user);
 //     res.cookie('SESSIONID', sessionId, { httpOnly: true, secure: true });
 //     res.status(200).json({ id: user.id, email: user.email })
-// } 
-
+// }
 
 async function createUsreHashAndSessionToken(res: Response, credentials: any) {
-    const hash = await argon2.hash(credentials.password);
-    // console.log(hash);
-    const user: DbUser = db.createUser(credentials.email, hash);
-    // JSON.stringify(console.log(user));
-    // const sessionId = await randomByte(32).then(bytes => bytes.toString('hex'));
-    // sessionStore.createSession(sessionId, user);
-    let authtoken = createToken(user);
-    console.log('SessionID', authtoken);
-    // res.cookie('SESSIONID', authtoken, { httpOnly: true, secure: true });
-    res.status(200).json({ id: user.id, email: user.email })
+  const hash = await argon2.hash(credentials.password);
+  // console.log(hash);
+  const user: DbUser = db.createUser(credentials.email, hash);
+  // JSON.stringify(console.log(user));
+  // const sessionId = await randomByte(32).then(bytes => bytes.toString('hex'));
+  // sessionStore.createSession(sessionId, user);
+  let authtoken = createToken(user);
+  console.log('SessionID', authtoken);
+  // res.cookie('SESSIONID', authtoken, { httpOnly: true, secure: true });
+  res.status(200).json({ id: user.id, email: user.email });
 }
-
 
 export async function createUserToken(credentials: any) {
-    const hash = await argon2.hash(credentials.password);
-    // console.log(hash);
-    const user: DbUser = db.createUser(credentials.email, hash);
-    console.log('USERS', USERS);
-    // JSON.stringify(console.log(user));
-    // const sessionId = await randomByte(32).then(bytes => bytes.toString('hex'));
-    // sessionStore.createSession(sessionId, user);
-    // let authtoken = createToken(user.id.toString());
-    // console.log('SessionID', authtoken);
-    // res.cookie('SESSIONID', authtoken, { httpOnly: true, secure: true });
-    // res.status(200).json({ id: user.id, email: user.email })
+  const hash = await argon2.hash(credentials.password);
+  // console.log(hash);
+  const user: DbUser = db.createUser(credentials.email, hash);
+  console.log('USERS', USERS);
+  // JSON.stringify(console.log(user));
+  // const sessionId = await randomByte(32).then(bytes => bytes.toString('hex'));
+  // sessionStore.createSession(sessionId, user);
+  // let authtoken = createToken(user.id.toString());
+  // console.log('SessionID', authtoken);
+  // res.cookie('SESSIONID', authtoken, { httpOnly: true, secure: true });
+  // res.status(200).json({ id: user.id, email: user.email })
 }
-
